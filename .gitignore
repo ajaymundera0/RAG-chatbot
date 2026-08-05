@@ -1,0 +1,17 @@
+# Environment
+.env
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Data (don't commit uploaded/test documents or vector stores)
+data/uploads/
+data/vector_store/
+*.faiss
+*.sqlite3
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
