@@ -11,8 +11,8 @@ Built as a learning + portfolio project. Full build plan: see `PLAN.md`.
 ## Stack
 
 - **Backend:** Python (FastAPI)
-- **LLM:** OpenAI (chat completions)
-- **Embeddings:** OpenAI (embeddings API)
+- **LLM:** Nemotron, via Hugging Face's Inference Providers router (free, OpenAI-compatible)
+- **Embeddings:** local, via `sentence-transformers` (open-source, no API key, runs on CPU)
 - **Vector store:** TBD (starting local/in-memory, see PLAN.md)
 
 ## Setup
@@ -21,16 +21,20 @@ Built as a learning + portfolio project. Full build plan: see `PLAN.md`.
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env       # then fill in your API key
+cp .env.example .env       # then fill in your Hugging Face token
 ```
+
+Get a free token at https://huggingface.co/settings/tokens — make sure "Make calls to Inference Providers" is enabled on it.
 
 ## Run the API smoke test
 
-Confirms your OpenAI API key works for both chat and embeddings before building anything else:
+Confirms your HF token works for chat, and that local embeddings work:
 
 ```bash
 python scripts/smoke_test.py
 ```
+
+(First run downloads a small local embedding model — that's expected.)
 
 ## Architecture
 
