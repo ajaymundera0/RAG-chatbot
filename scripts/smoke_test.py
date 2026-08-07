@@ -30,7 +30,7 @@ def test_chat() -> None:
     reply = response.choices[0].message.content.strip()
     print(f"  Model replied: {reply!r}")
     assert reply, "Chat completion returned an empty response"
-    print("  ✅ Chat completion works.\n")
+    print("  [OK] Chat completion works.\n")
 
 
 def test_embeddings() -> None:
@@ -41,7 +41,7 @@ def test_embeddings() -> None:
     vector = model.encode("This is a test sentence for embeddings.")
     print(f"  Got embedding vector of length: {len(vector)}")
     assert len(vector) > 0, "Embedding was empty"
-    print("  ✅ Embeddings work.\n")
+    print("  [OK] Embeddings work.\n")
 
 
 def main() -> None:
