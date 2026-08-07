@@ -16,8 +16,8 @@ class SentenceTransformerEmbeddingFunction(EmbeddingFunction):
 
 class ChromaVectorStore:
     def __init__(self, collection_name: str = "documents"):
-        # For Phase 1, we'll just use an ephemeral in-memory client
-        self.client = chromadb.EphemeralClient()
+        # Use a persistent client for Phase 2 so data survives FastAPI reloads
+        self.client = chromadb.PersistentClient(path="./chroma_db")
         self.embedding_fn = SentenceTransformerEmbeddingFunction(settings.EMBEDDING_MODEL)
         
         # Create a fresh collection

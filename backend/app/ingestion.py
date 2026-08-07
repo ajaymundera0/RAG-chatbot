@@ -1,12 +1,22 @@
 import os
+from pypdf import PdfReader
 
 def load_document(filepath: str) -> str:
-    """Reads a text document from the filesystem."""
+    """Reads a text or PDF document from the filesystem."""
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Document not found: {filepath}")
     
-    with open(filepath, "r", encoding="utf-8") as f:
-        return f.read()
+    if filepath.lower().endswith(".pdf"):
+        reader = PdfReader(filepath)
+        text = ""
+        for page in reader.pages:
+            extracted = page.extract_text()
+            if extracted:
+                text += extracted + "\n"
+        return text
+    else:
+        with open(filepath, "r", encoding="utf-8") as f:
+            return f.read()
 
 def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
     """

@@ -4,3 +4,6 @@ fastapi
 uvicorn[standard]
 sentence-transformers
 chromadb
+python-multipart
+pypdf  
+ 
