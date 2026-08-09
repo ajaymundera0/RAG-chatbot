@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
     <div class="app-container">
@@ -57,6 +57,7 @@
             <div class="input-container">
                 <form id="chat-form">
                     <input type="text" id="chat-input" placeholder="Ask a question about your documents..." autocomplete="off" required>
+                    <button type="button" class="stop-btn hidden" id="stop-btn" title="Stop generation"><i class="fa-solid fa-stop"></i></button>
                     <button type="submit" class="send-btn" id="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             </div>
@@ -66,6 +67,6 @@
     <!-- Include marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.css"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html>

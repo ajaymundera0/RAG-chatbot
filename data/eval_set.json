@@ -1,0 +1,22 @@
+[
+    {
+        "question": "What are the two most common species of coffee grown commercially?",
+        "expected_answer": "Arabica and Robusta (Coffea arabica and Coffea canephora)"
+    },
+    {
+        "question": "What is the capital of France?",
+        "expected_answer": "I don't know based on these documents."
+    },
+    {
+        "question": "Who is the goat herder said to have discovered coffee?",
+        "expected_answer": "Kaldi"
+    },
+    {
+        "question": "When did Brazil begin coffee production?",
+        "expected_answer": "In the 1720s"
+    },
+    {
+        "question": "How long does espresso typically take to brew?",
+        "expected_answer": "Roughly twenty-five to thirty seconds"
+    }
+]

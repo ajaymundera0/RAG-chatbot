@@ -1,3 +1,4 @@
+import json
 from openai import OpenAI
 from backend.app.config import settings
 
@@ -11,11 +12,14 @@ def generate_answer(query: str, retrieved_chunks: list[dict]) -> str:
     # Format the context from retrieved chunks
     context_text = ""
     for idx, chunk in enumerate(retrieved_chunks, 1):
-        context_text += f"\n--- Source {idx} ---\n{chunk['text']}\n"
+        source_name = chunk.get("metadata", {}).get("source", f"Source {idx}")
+        page = chunk.get("metadata", {}).get("page", "1")
+        context_text += f"\n--- Source: {source_name} (Page {page}) ---\n{chunk['text']}\n"
     
     system_prompt = (
         "You are a helpful assistant. You will be provided with a user's question and several context chunks from uploaded documents.\n"
         "Your task is to answer the user's question using ONLY the provided context.\n"
+        "When you use information from a source, you MUST cite it inline using the format [Source: filename.pdf (Page X)].\n"
         "If the context does not contain the information needed to answer the question, you must respond exactly with: "
         "'I don't know based on these documents.'\n"
         "Do not include any outside knowledge or information."
@@ -44,11 +48,14 @@ def stream_answer(query: str, retrieved_chunks: list[dict]):
     
     context_text = ""
     for idx, chunk in enumerate(retrieved_chunks, 1):
-        context_text += f"\n--- Source {idx} ---\n{chunk['text']}\n"
+        source_name = chunk.get("metadata", {}).get("source", f"Source {idx}")
+        page = chunk.get("metadata", {}).get("page", "1")
+        context_text += f"\n--- Source: {source_name} (Page {page}) ---\n{chunk['text']}\n"
     
     system_prompt = (
         "You are a helpful assistant. You will be provided with a user's question and several context chunks from uploaded documents.\n"
         "Your task is to answer the user's question using ONLY the provided context.\n"
+        "When you use information from a source, you MUST cite it inline using the format [Source: filename (Page X)].\n"
         "If the context does not contain the information needed to answer the question, you must respond exactly with: "
         "'I don't know based on these documents.'\n"
         "Do not include any outside knowledge or information."
@@ -66,6 +73,11 @@ def stream_answer(query: str, retrieved_chunks: list[dict]):
         stream=True
     )
     
+    # Yield chat text tokens
     for chunk in response_stream:
         if chunk.choices and chunk.choices[0].delta.content:
             yield chunk.choices[0].delta.content
+            
+    # At the end, yield our custom separator and the JSON sources block
+    yield "\n\n___SOURCES___\n"
+    yield json.dumps(retrieved_chunks)

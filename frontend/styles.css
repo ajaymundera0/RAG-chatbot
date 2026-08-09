@@ -114,7 +114,7 @@ body {
 .status-msg.success { background: rgba(16, 185, 129, 0.2); color: #10b981; }
 .status-msg.error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
 .status-msg.loading { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 .documents-list {
     margin-top: 30px;
@@ -303,6 +303,26 @@ body {
     transform: none;
 }
 
+.stop-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stop-btn:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}
+
 /* Typing indicator */
 .typing-indicator {
     display: flex;
@@ -323,4 +343,72 @@ body {
 @keyframes bounce {
     0%, 80%, 100% { transform: scale(0); }
     40% { transform: scale(1); }
+}
+
+/* SOURCES UI */
+.sources-container {
+    margin-top: 20px;
+    border-top: 1px solid var(--glass-border);
+    padding-top: 15px;
+}
+
+.sources-container h4 {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.source-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.source-card summary {
+    padding: 12px 15px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    transition: background 0.2s;
+    user-select: none;
+}
+
+.source-card summary:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.src-title {
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.src-page {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.src-content {
+    padding: 15px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    border-top: 1px solid var(--glass-border);
+    font-style: italic;
 }

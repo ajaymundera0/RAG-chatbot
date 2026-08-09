@@ -26,16 +26,27 @@ class ChromaVectorStore:
             embedding_function=self.embedding_fn
         )
 
-    def add_chunks(self, chunks: list[str], source: str):
-        """Adds text chunks to the vector store with metadata."""
+    def add_chunks(self, chunks: list[dict], source: str):
+        """Adds structured chunks to the vector store, preserving metadata."""
         if not chunks:
             return
 
-        ids = [f"{source}_chunk_{i}" for i in range(len(chunks))]
-        metadatas = [{"source": source, "chunk_index": i} for i in range(len(chunks))]
+        texts = []
+        ids = []
+        metadatas = []
+        
+        for i, chunk_data in enumerate(chunks):
+            texts.append(chunk_data["text"])
+            ids.append(f"{source}_chunk_{i}")
+            
+            # Combine generic metadata (source, chunk_index) with specific metadata (like page)
+            meta = dict(chunk_data.get("metadata", {}))
+            meta["source"] = source
+            meta["chunk_index"] = i
+            metadatas.append(meta)
         
         self.collection.add(
-            documents=chunks,
+            documents=texts,
             metadatas=metadatas,
             ids=ids
         )

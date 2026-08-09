@@ -1,39 +1,53 @@
 import os
 from pypdf import PdfReader
 
-def load_document(filepath: str) -> str:
-    """Reads a text or PDF document from the filesystem."""
+def load_document(filepath: str) -> list[dict]:
+    """
+    Reads a text or PDF document from the filesystem.
+    Returns a list of dictionaries, where each dict represents a page (or the whole doc for txt)
+    and contains the text and metadata (including page number).
+    """
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Document not found: {filepath}")
     
+    pages_data = []
+    
     if filepath.lower().endswith(".pdf"):
         reader = PdfReader(filepath)
-        text = ""
-        for page in reader.pages:
+        for i, page in enumerate(reader.pages):
             extracted = page.extract_text()
-            if extracted:
-                text += extracted + "\n"
-        return text
+            if extracted and extracted.strip():
+                pages_data.append({
+                    "text": extracted + "\n",
+                    "metadata": {"page": i + 1}
+                })
     else:
         with open(filepath, "r", encoding="utf-8") as f:
-            return f.read()
+            text = f.read()
+            if text and text.strip():
+                pages_data.append({
+                    "text": text,
+                    "metadata": {"page": 1} # Default to page 1 for flat text files
+                })
+                
+    return pages_data
 
-def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+def chunk_text(pages: list[dict], chunk_size: int = 500, overlap: int = 50) -> list[dict]:
     """
-    Recursively splits text into chunks, preferring semantic boundaries 
-    (paragraphs, sentences, words) while respecting chunk_size and overlap.
+    Recursively splits text into chunks while preserving semantic boundaries 
+    and carrying over the page metadata from the source dictionary.
     """
-    if not text:
+    if not pages:
         return []
 
     separators = ["\n\n", "\n", ". ", " ", ""]
+    final_chunks = []
     
     def split_with_overlap(txt: str, sep_index: int) -> list[str]:
         if len(txt) <= chunk_size:
             return [txt]
             
         if sep_index >= len(separators) - 1:
-            # Fallback: naive character chunking if we run out of separators
             chunks = []
             start = 0
             while start < len(txt):
@@ -44,37 +58,27 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]
             return chunks
 
         separator = separators[sep_index]
-        
-        # Split text by current separator and preserve the separator
         splits = txt.split(separator)
         splits = [s + separator for s in splits[:-1]] + [splits[-1]]
             
         if len(splits) == 1 and len(splits[0]) > chunk_size:
-            # Separator wasn't found or didn't break text up enough, try next one
             return split_with_overlap(txt, sep_index + 1)
 
-        # Merge splits into chunks
         chunks = []
         current_chunk = []
         current_len = 0
         
         for split in splits:
             if len(split) > chunk_size:
-                # If a single split is larger than chunk_size, yield current chunk 
                 if current_chunk:
                     chunks.append("".join(current_chunk).strip())
                     current_chunk = []
                     current_len = 0
-                
-                # Recursively process the large split
                 chunks.extend(split_with_overlap(split, sep_index + 1))
                 continue
                 
             if current_len + len(split) > chunk_size and current_chunk:
-                # Current chunk is full, yield it
                 chunks.append("".join(current_chunk).strip())
-                
-                # Setup overlap for the next chunk
                 overlap_chunk = []
                 overlap_len = 0
                 for item in reversed(current_chunk):
@@ -83,7 +87,6 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]
                         overlap_len += len(item)
                     else:
                         break
-                        
                 current_chunk = overlap_chunk
                 current_len = overlap_len
 
@@ -97,4 +100,17 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]
             
         return chunks
 
-    return split_with_overlap(text, 0)
+    for page_data in pages:
+        text = page_data.get("text", "")
+        base_metadata = page_data.get("metadata", {})
+        
+        raw_chunks = split_with_overlap(text, 0)
+        
+        for chunk in raw_chunks:
+            # We copy the metadata to avoid mutation across chunks
+            final_chunks.append({
+                "text": chunk,
+                "metadata": dict(base_metadata)
+            })
+
+    return final_chunks

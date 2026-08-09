@@ -7,6 +7,15 @@ const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 const messagesContainer = document.getElementById('messages-container');
 const sendBtn = document.getElementById('send-btn');
+const stopBtn = document.getElementById('stop-btn');
+
+let currentAbortController = null;
+
+stopBtn.addEventListener('click', () => {
+    if (currentAbortController) {
+        currentAbortController.abort();
+    }
+});
 
 // --- File Upload Logic ---
 dropZone.addEventListener('dragover', (e) => {
@@ -82,12 +91,17 @@ chatForm.addEventListener('submit', async (e) => {
     // Add AI message placeholder with typing indicator
     const { bubble, contentDiv } = appendAIMessagePlaceholder();
     sendBtn.disabled = true;
+    sendBtn.classList.add('hidden');
+    stopBtn.classList.remove('hidden');
+
+    currentAbortController = new AbortController();
 
     try {
         const response = await fetch('/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: query, top_k: 4 })
+            body: JSON.stringify({ query: query, top_k: 4 }),
+            signal: currentAbortController.signal
         });
 
         if (!response.ok) {
@@ -111,15 +125,51 @@ chatForm.addEventListener('submit', async (e) => {
             const chunk = decoder.decode(value, { stream: true });
             fullResponse += chunk;
             
-            // Render markdown on the fly
-            newContentDiv.innerHTML = marked.parse(fullResponse);
+            if (fullResponse.includes("___SOURCES___")) {
+                const parts = fullResponse.split("___SOURCES___");
+                const markdownText = parts[0];
+                newContentDiv.innerHTML = marked.parse(markdownText);
+                
+                try {
+                    const sourcesJsonStr = parts[1].trim();
+                    if (sourcesJsonStr) {
+                        const sources = JSON.parse(sourcesJsonStr);
+                        renderSources(bubble, sources);
+                    }
+                } catch (e) {
+                    // JSON might not be fully streamed yet, ignore until next chunk
+                }
+            } else {
+                // Render markdown on the fly
+                newContentDiv.innerHTML = marked.parse(fullResponse);
+            }
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
     } catch (err) {
-        contentDiv.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+        if (err.name === 'AbortError') {
+            const stopSpan = document.createElement('span');
+            stopSpan.style = "color: var(--text-muted); font-style: italic; display: block; margin-top: 8px;";
+            stopSpan.innerText = "Generation stopped by user.";
+            bubble.appendChild(stopSpan);
+            
+            if (contentDiv && contentDiv.parentNode === bubble) {
+                contentDiv.remove();
+            }
+        } else {
+            const errorMsg = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+            const content = bubble.querySelector('.content');
+            if (content) {
+                content.innerHTML += `<br>${errorMsg}`;
+            } else {
+                bubble.innerHTML = errorMsg;
+            }
+        }
     } finally {
+        currentAbortController = null;
         sendBtn.disabled = false;
+        sendBtn.classList.remove('hidden');
+        stopBtn.classList.add('hidden');
         chatInput.focus();
     }
 });
@@ -159,4 +209,35 @@ function appendAIMessagePlaceholder() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     
     return { bubble: msgDiv.querySelector('.bubble'), contentDiv: msgDiv.querySelector('.typing-indicator') };
+}
+
+function renderSources(bubble, sources) {
+    if (bubble.querySelector('.sources-container')) return;
+    if (!sources || sources.length === 0) return;
+    
+    const sourcesDiv = document.createElement('div');
+    sourcesDiv.className = 'sources-container';
+    
+    let html = '<h4><i class="fa-solid fa-book-open"></i> Sources Used</h4><div class="sources-list">';
+    
+    sources.forEach((src, idx) => {
+        const meta = src.metadata || {};
+        const filename = meta.source || `Source ${idx+1}`;
+        const page = meta.page || "1";
+        const textSnippet = src.text.substring(0, 200) + "...";
+        
+        html += `
+            <details class="source-card">
+                <summary>
+                    <span class="src-title"><i class="fa-regular fa-file"></i> ${filename}</span>
+                    <span class="src-page">Page ${page}</span>
+                </summary>
+                <div class="src-content">${textSnippet}</div>
+            </details>
+        `;
+    });
+    
+    html += '</div>';
+    sourcesDiv.innerHTML = html;
+    bubble.appendChild(sourcesDiv);
 }

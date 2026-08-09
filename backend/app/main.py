@@ -51,9 +51,9 @@ async def upload_document(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
         
     try:
-        # Extract text and chunk
-        text = load_document(file_path)
-        chunks = chunk_text(text, chunk_size=1000, overlap=100)
+        # Extract pages and chunk them
+        pages = load_document(file_path)
+        chunks = chunk_text(pages, chunk_size=1000, overlap=100)
         
         if not chunks:
             raise HTTPException(status_code=400, detail="No text extracted from file")
