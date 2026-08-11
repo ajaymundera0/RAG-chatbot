@@ -20,7 +20,7 @@ def grade_answer(client: OpenAI, question: str, expected: str, actual: str) -> b
         "Your job is to determine if the Actual Answer is correct based on the Expected Answer.\n"
         "The Actual Answer does not need to use the exact same words, but it must contain the same factual information.\n"
         "If the Expected Answer is 'I don't know based on these documents.', the Actual Answer must also express an inability to answer based on the context.\n"
-        "Respond with EXACTLY '1' if the answer is correct, and '0' if it is incorrect. Do not include any other text."
+        "Respond with EXACTLY '1' if the answer is correct, and '0' if it is incorrect. Do NOT write any explanations, do NOT think out loud, and do NOT include any other text whatsoever. Output a single character."
     )
     
     user_prompt = f"Question: {question}\nExpected Answer: {expected}\nActual Answer: {actual}"
@@ -31,11 +31,15 @@ def grade_answer(client: OpenAI, question: str, expected: str, actual: str) -> b
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        temperature=0.0 # Strict and deterministic
+        temperature=0.0, # Strict and deterministic
+        max_tokens=100
     )
     
-    grade_str = response.choices[0].message.content.strip()
-    return grade_str == "1"
+    content = response.choices[0].message.content
+    grade_str = (content or "").strip()
+    if "1" not in grade_str and "0" not in grade_str:
+        print(f"  [Grader Output]: {grade_str!r}")
+    return "1" in grade_str
 
 def run_evaluation():
     print("Starting Evaluation Harness...")
@@ -53,7 +57,7 @@ def run_evaluation():
     
     # Initialize components
     vector_store = ChromaVectorStore()
-    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
+    client = OpenAI(base_url=settings.OPENROUTER_BASE_URL, api_key=settings.OPENROUTER_API_KEY)
     
     passed = 0
     total = len(eval_data)

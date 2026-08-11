@@ -22,10 +22,11 @@ from backend.app.config import settings
 
 def test_chat() -> None:
     print("Testing chat completion (Hugging Face router -> Nemotron)...")
-    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
+    client = OpenAI(base_url=settings.OPENROUTER_BASE_URL, api_key=settings.OPENROUTER_API_KEY)
     response = client.chat.completions.create(
         model=settings.CHAT_MODEL,
         messages=[{"role": "user", "content": "Reply with exactly: pong"}],
+        max_tokens=100
     )
     reply = response.choices[0].message.content.strip()
     print(f"  Model replied: {reply!r}")

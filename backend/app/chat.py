@@ -7,7 +7,7 @@ def generate_answer(query: str, retrieved_chunks: list[dict]) -> str:
     Constructs a prompt using retrieved chunks and calls the LLM.
     Strictly instructs the model to only use the provided context.
     """
-    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
+    client = OpenAI(base_url=settings.OPENROUTER_BASE_URL, api_key=settings.OPENROUTER_API_KEY)
     
     # Format the context from retrieved chunks
     context_text = ""
@@ -33,7 +33,8 @@ def generate_answer(query: str, retrieved_chunks: list[dict]) -> str:
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        temperature=0.0 # Low temperature for more factual responses
+        temperature=0.0, # Low temperature for more factual responses
+        max_tokens=1024
     )
     
     return response.choices[0].message.content.strip()
@@ -44,7 +45,7 @@ def stream_answer(query: str, retrieved_chunks: list[dict]):
     Constructs a prompt using retrieved chunks and calls the LLM with streaming.
     Yields string tokens one by one.
     """
-    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
+    client = OpenAI(base_url=settings.OPENROUTER_BASE_URL, api_key=settings.OPENROUTER_API_KEY)
     
     context_text = ""
     for idx, chunk in enumerate(retrieved_chunks, 1):
@@ -70,7 +71,8 @@ def stream_answer(query: str, retrieved_chunks: list[dict]):
             {"role": "user", "content": user_prompt}
         ],
         temperature=0.0,
-        stream=True
+        stream=True,
+        max_tokens=1024
     )
     
     # Yield chat text tokens
