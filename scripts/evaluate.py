@@ -58,11 +58,20 @@ def grade_answer(client: OpenAI, question: str, expected: str, actual: str) -> b
             {"role": "user", "content": user_prompt}
         ],
         temperature=0.0, # Strict and deterministic
-        max_tokens=100
+        # A reasoning judge spends this budget on hidden reasoning tokens before it
+        # emits the verdict. Too low and it truncates mid-thought, returning empty
+        # content that silently scores as a FAIL. Keep the ceiling generous.
+        max_tokens=2048
     )
-    
+
+    choice = response.choices[0]
+    grade_str = (choice.message.content or "").strip()
+    if not grade_str:
+        raise RuntimeError(
+            f"Judge returned no verdict (finish_reason={choice.finish_reason}). "
+            "If it is 'length', raise max_tokens."
+        )
     # startswith, not ==, so a judge that adds a trailing word doesn't silently fail the case
-    grade_str = response.choices[0].message.content.strip()
     return grade_str.startswith("1")
 
 def run_evaluation():

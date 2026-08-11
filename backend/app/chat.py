@@ -50,7 +50,7 @@ def stream_answer(query: str, retrieved_chunks: list[dict]):
     Constructs a prompt using retrieved chunks and calls the LLM with streaming.
     Yields string tokens one by one.
     """
-    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
+    client = OpenAI(base_url=settings.CHAT_BASE_URL, api_key=settings.CHAT_API_KEY)
     
     context_text = ""
     for idx, chunk in enumerate(retrieved_chunks, 1):

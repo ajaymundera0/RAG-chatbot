@@ -95,17 +95,19 @@ Each run **rebuilds its own index** from a pinned document list into a separate 
 
 **Current baseline:** 24 cases — `deepseek-v4-flash`, chunk 1000 / overlap 100 / top_k 4.
 
-| Run | Score |
-|---|---|
-| 1 | 23/24 (95.8%) |
-| 2 | 24/24 (100%) |
+| Run | Score | Note |
+|---|---|---|
+| 1 | 23/24 (95.8%) | judge `max_tokens=100` |
+| 2 | 24/24 (100%) | judge `max_tokens=100` |
+| 3 | 12/24 (50.0%) | judge `max_tokens=100` |
+| 4 | 24/24 (100%) | judge `max_tokens=2048` |
 
-Same code, same settings, different score. The single failure was traced to the judge: the pipeline answered "twelve to twenty-four hours" with the correct page cited, and the judge marked it wrong — then graded the identical pair correctly 5 times out of 5 on re-run. So it was grader noise, not a retrieval or generation defect.
+Identical pipeline, scores from 50% to 100% — a harness bug, not a retrieval one. The judge is a *reasoning* model, and its hidden reasoning tokens are billed against the same `max_tokens` budget as its answer. At 100 it usually ran out mid-thought and returned an **empty** verdict, which the parser scored as a failure. Measured directly: 6 of 8 identical judge calls came back `finish_reason='length'` with `content=''`.
 
-Two things follow, and both constrain how the eval can be used:
+Two things follow:
 
-- **Noise floor ≈ 4 points.** With 24 cases, one flipped case moves the score by 4.2%. Any tuning result smaller than that is indistinguishable from grader variance, so a change must move at least 2 cases before it means anything.
-- **The suite is still at ceiling.** 24/24 means retrieval currently finds everything these questions need, including the five adversarial unanswerables. Harder questions are needed before chunk size or `k` can be meaningfully compared.
+- **A silent grader failure looks exactly like a pipeline regression.** Run 3's failures included cases where expected and actual answers were byte-identical. The harness now raises on an empty verdict instead of counting it as a FAIL, so this can't be misread again.
+- **The suite is at ceiling.** With the judge fixed, 24/24 — retrieval finds everything these questions need, including the five adversarial unanswerables. Harder questions are needed before chunk size or `k` can be meaningfully compared.
 
 **Test set.** 24 question/expected-answer pairs over the coffee guide, grouped by what they stress:
 
@@ -122,7 +124,7 @@ Refusal behaviour is the easiest thing to regress when you loosen a prompt and t
 
 - The judge is itself an LLM — it can be wrong, and it shares a family of blind spots with the model it's grading.
 - It scores the *answer*, not the *citation*. An answer can be right while pointing at the wrong page.
-- **The judge is not deterministic**, even at `temperature=0.0` — measured directly, not assumed (see the two runs above). That puts a noise floor under every comparison.
+- **A reasoning judge needs headroom.** Its reasoning tokens share the `max_tokens` budget with its verdict; too small a cap silently turns every grade into a failure (see the run table above).
 - **The suite is still at ceiling** at 24 cases, so it can prove the pipeline works but cannot yet rank two configurations against each other.
 
 **Tuning results:** not yet. Growing the set from 5 to 24 cases — including multi-hop and adversarial-refusal questions — did not create headroom: the current configuration answers all of them. Producing a real before/after number needs questions this setup actually fails, which most likely means a larger corpus with cross-document distractors rather than more questions about one guide.

@@ -30,8 +30,8 @@ class Settings:
     def validate(self) -> None:
         if not self.CHAT_API_KEY:
             raise RuntimeError(
-                "CHAT_API_KEY is missing. Copy .env.example to .env and add your key "
-                "from https://openrouter.ai/keys"
+                "CHAT_API_KEY is missing. Copy .env.example to .env and add a key "
+                "matching your CHAT_BASE_URL provider."
             )
 
 
