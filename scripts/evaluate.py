@@ -46,7 +46,7 @@ def grade_answer(client: OpenAI, question: str, expected: str, actual: str) -> b
         "Your job is to determine if the Actual Answer is correct based on the Expected Answer.\n"
         "The Actual Answer does not need to use the exact same words, but it must contain the same factual information.\n"
         "If the Expected Answer is 'I don't know based on these documents.', the Actual Answer must also express an inability to answer based on the context.\n"
-        "Respond with EXACTLY '1' if the answer is correct, and '0' if it is incorrect. Do not include any other text."
+        "Respond with EXACTLY '1' if the answer is correct, and '0' if it is incorrect. Do NOT write any explanations, do NOT think out loud, and do NOT include any other text whatsoever. Output a single character."
     )
     
     user_prompt = f"Question: {question}\nExpected Answer: {expected}\nActual Answer: {actual}"
@@ -57,7 +57,8 @@ def grade_answer(client: OpenAI, question: str, expected: str, actual: str) -> b
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        temperature=0.0 # Strict and deterministic
+        temperature=0.0, # Strict and deterministic
+        max_tokens=100
     )
     
     # startswith, not ==, so a judge that adds a trailing word doesn't silently fail the case

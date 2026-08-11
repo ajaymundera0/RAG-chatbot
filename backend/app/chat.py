@@ -33,7 +33,8 @@ def generate_answer(query: str, retrieved_chunks: list[dict]) -> str:
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        temperature=0.0 # Low temperature for more factual responses
+        temperature=0.0, # Low temperature for more factual responses
+        max_tokens=1024
     )
     
     # A provider can return HTTP 200 with an error payload and no choices (free-tier
@@ -49,7 +50,7 @@ def stream_answer(query: str, retrieved_chunks: list[dict]):
     Constructs a prompt using retrieved chunks and calls the LLM with streaming.
     Yields string tokens one by one.
     """
-    client = OpenAI(base_url=settings.CHAT_BASE_URL, api_key=settings.CHAT_API_KEY)
+    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
     
     context_text = ""
     for idx, chunk in enumerate(retrieved_chunks, 1):
@@ -75,7 +76,8 @@ def stream_answer(query: str, retrieved_chunks: list[dict]):
             {"role": "user", "content": user_prompt}
         ],
         temperature=0.0,
-        stream=True
+        stream=True,
+        max_tokens=1024
     )
     
     # Yield chat text tokens

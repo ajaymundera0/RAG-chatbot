@@ -26,6 +26,7 @@ def test_chat() -> None:
     response = client.chat.completions.create(
         model=settings.CHAT_MODEL,
         messages=[{"role": "user", "content": "Reply with exactly: pong"}],
+        max_tokens=100
     )
     reply = response.choices[0].message.content.strip()
     print(f"  Model replied: {reply!r}")
