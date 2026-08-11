@@ -7,7 +7,7 @@ def generate_answer(query: str, retrieved_chunks: list[dict]) -> str:
     Constructs a prompt using retrieved chunks and calls the LLM.
     Strictly instructs the model to only use the provided context.
     """
-    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
+    client = OpenAI(base_url=settings.CHAT_BASE_URL, api_key=settings.CHAT_API_KEY)
     
     # Format the context from retrieved chunks
     context_text = ""
@@ -36,6 +36,11 @@ def generate_answer(query: str, retrieved_chunks: list[dict]) -> str:
         temperature=0.0 # Low temperature for more factual responses
     )
     
+    # A provider can return HTTP 200 with an error payload and no choices (free-tier
+    # rate limits do this). Surface it instead of a cryptic NoneType error.
+    if not response.choices:
+        raise RuntimeError(f"No completion returned: {getattr(response, 'model_extra', None) or response}")
+
     return response.choices[0].message.content.strip()
 
 
@@ -44,7 +49,7 @@ def stream_answer(query: str, retrieved_chunks: list[dict]):
     Constructs a prompt using retrieved chunks and calls the LLM with streaming.
     Yields string tokens one by one.
     """
-    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
+    client = OpenAI(base_url=settings.CHAT_BASE_URL, api_key=settings.CHAT_API_KEY)
     
     context_text = ""
     for idx, chunk in enumerate(retrieved_chunks, 1):

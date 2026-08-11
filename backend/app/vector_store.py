@@ -27,9 +27,15 @@ class ChromaVectorStore:
         )
 
     def add_chunks(self, chunks: list[dict], source: str):
-        """Adds structured chunks to the vector store, preserving metadata."""
+        """Adds structured chunks to the vector store, preserving metadata.
+
+        Re-indexing the same source replaces its chunks rather than colliding on
+        ids -- otherwise re-uploading an edited file silently keeps the old text.
+        """
         if not chunks:
             return
+
+        self.collection.delete(where={"source": source})
 
         texts = []
         ids = []

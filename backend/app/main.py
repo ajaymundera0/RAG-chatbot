@@ -44,24 +44,26 @@ async def upload_document(file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
         
-    file_path = os.path.join("data", file.filename)
-    
+    # Strip any directory components so an uploaded name can't escape data/
+    filename = os.path.basename(file.filename)
+    file_path = os.path.join("data", filename)
+
     # Save file temporarily
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-        
+
     try:
         # Extract pages and chunk them
         pages = load_document(file_path)
         chunks = chunk_text(pages, chunk_size=1000, overlap=100)
-        
+
         if not chunks:
             raise HTTPException(status_code=400, detail="No text extracted from file")
-            
+
         # Index chunks
-        vector_store.add_chunks(chunks, source=file.filename)
-        
-        return {"message": f"Successfully processed and indexed {file.filename}", "chunks_created": len(chunks)}
+        vector_store.add_chunks(chunks, source=filename)
+
+        return {"message": f"Successfully processed and indexed {filename}", "chunks_created": len(chunks)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

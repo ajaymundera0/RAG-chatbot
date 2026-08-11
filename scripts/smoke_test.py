@@ -2,7 +2,7 @@
 Phase 0 smoke test.
 
 Confirms the two halves of the pipeline both work:
-  1. Chat completions -- via Hugging Face's Inference Providers router (Nemotron)
+  1. Chat completions -- via an OpenAI-compatible provider (default: OpenRouter)
   2. Embeddings -- run locally with sentence-transformers (no API key needed)
 
 Run this before building anything else:
@@ -21,8 +21,8 @@ from backend.app.config import settings
 
 
 def test_chat() -> None:
-    print("Testing chat completion (Hugging Face router -> Nemotron)...")
-    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
+    print(f"Testing chat completion ({settings.CHAT_MODEL})...")
+    client = OpenAI(base_url=settings.CHAT_BASE_URL, api_key=settings.CHAT_API_KEY)
     response = client.chat.completions.create(
         model=settings.CHAT_MODEL,
         messages=[{"role": "user", "content": "Reply with exactly: pong"}],

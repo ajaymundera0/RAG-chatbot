@@ -8,7 +8,33 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from openai import OpenAI
 from backend.app.config import settings
 from backend.app.vector_store import ChromaVectorStore
+from backend.app.ingestion import load_document, chunk_text
 from backend.app.chat import generate_answer
+
+# --- Retrieval settings under test. Change these, re-run, compare scores. ---
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 100
+TOP_K = 4
+
+# Fixed corpus the eval questions are written against.
+EVAL_DOCS = ["data/Home_Coffee_Brewing_Guide.pdf"]
+
+
+def build_index() -> ChromaVectorStore:
+    """
+    Rebuilds a dedicated eval index from a fixed document list.
+
+    Uses its own collection so it never clobbers documents uploaded through the app,
+    and re-ingests on every run so a score depends only on the settings above --
+    not on whatever happens to be sitting in chroma_db from earlier sessions.
+    """
+    store = ChromaVectorStore(collection_name="eval")
+    for path in EVAL_DOCS:
+        pages = load_document(path)
+        chunks = chunk_text(pages, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP)
+        store.add_chunks(chunks, source=os.path.basename(path))
+        print(f"  Indexed {os.path.basename(path)}: {len(pages)} pages -> {len(chunks)} chunks")
+    return store
 
 def grade_answer(client: OpenAI, question: str, expected: str, actual: str) -> bool:
     """
@@ -26,7 +52,7 @@ def grade_answer(client: OpenAI, question: str, expected: str, actual: str) -> b
     user_prompt = f"Question: {question}\nExpected Answer: {expected}\nActual Answer: {actual}"
     
     response = client.chat.completions.create(
-        model=settings.CHAT_MODEL,
+        model=settings.JUDGE_MODEL,  # pinned, so tuning CHAT_MODEL doesn't move the grader too
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -34,8 +60,9 @@ def grade_answer(client: OpenAI, question: str, expected: str, actual: str) -> b
         temperature=0.0 # Strict and deterministic
     )
     
+    # startswith, not ==, so a judge that adds a trailing word doesn't silently fail the case
     grade_str = response.choices[0].message.content.strip()
-    return grade_str == "1"
+    return grade_str.startswith("1")
 
 def run_evaluation():
     print("Starting Evaluation Harness...")
@@ -51,9 +78,11 @@ def run_evaluation():
         
     print(f"Loaded {len(eval_data)} test cases.\n")
     
-    # Initialize components
-    vector_store = ChromaVectorStore()
-    client = OpenAI(base_url=settings.HF_BASE_URL, api_key=settings.HF_TOKEN)
+    # Rebuild the index so this run is reproducible
+    print("Building eval index...")
+    vector_store = build_index()
+    print()
+    client = OpenAI(base_url=settings.CHAT_BASE_URL, api_key=settings.CHAT_API_KEY)
     
     passed = 0
     total = len(eval_data)
@@ -66,13 +95,13 @@ def run_evaluation():
         print(f"Q: {question}")
         
         # 1. Retrieve context
-        chunks = vector_store.search(question, top_k=4)
+        chunks = vector_store.search(question, top_k=TOP_K)
         
         # 2. Generate answer
         actual_answer = generate_answer(question, chunks)
         print(f"Expected: {expected}")
         print(f"Actual:   {actual_answer}")
-        
+
         # 3. Grade
         is_correct = grade_answer(client, question, expected, actual_answer)
         if is_correct:
@@ -86,6 +115,9 @@ def run_evaluation():
     print("-" * 30)
     print("EVALUATION SUMMARY")
     print("-" * 30)
+    print(f"Chat model  : {settings.CHAT_MODEL}")
+    print(f"Judge model : {settings.JUDGE_MODEL}")
+    print(f"Retrieval   : chunk={CHUNK_SIZE} overlap={CHUNK_OVERLAP} top_k={TOP_K}")
     print(f"Total Tests : {total}")
     print(f"Passed      : {passed}")
     print(f"Failed      : {total - passed}")

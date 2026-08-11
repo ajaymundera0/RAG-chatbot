@@ -1,7 +1,8 @@
 """
 Loads environment variables once, so the rest of the app just imports `settings`.
 
-Chat: Hugging Face Inference Providers router (OpenAI-compatible), serving Nemotron.
+Chat: any OpenAI-compatible endpoint (default: OpenRouter). Swapping providers
+is a base URL + key + model id change, nothing more.
 Embeddings: local, via sentence-transformers -- no API key needed.
 """
 import os
@@ -11,20 +12,26 @@ load_dotenv()
 
 
 class Settings:
-    HF_TOKEN: str = os.getenv("HF_TOKEN", "")
-    HF_BASE_URL: str = "https://router.huggingface.co/v1"
+    CHAT_BASE_URL: str = os.getenv("CHAT_BASE_URL", "https://api.deepseek.com/v1")
+    CHAT_API_KEY: str = os.getenv("CHAT_API_KEY", "")
 
-    # Chat model served through the HF router (adjust if you pick a different one)
-    CHAT_MODEL: str = "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4:together"
+    # Ids are provider-specific -- these are DeepSeek's own API names.
+    CHAT_MODEL: str = "deepseek-v4-flash"
 
-    # Local embedding model -- small, fast, runs on CPU, no key required
+    # Pinned separately so the grader stays fixed while you tune CHAT_MODEL --
+    # otherwise before/after scores measure two changes at once. Deliberately the
+    # stronger model of the pair; same family, so watch for generous grading.
+    JUDGE_MODEL: str = "deepseek-v4-pro"
+
+    # Local embedding model -- small, fast, runs on CPU, no key required.
+    # Changing this invalidates every stored vector: wipe chroma_db/ and re-ingest.
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
 
     def validate(self) -> None:
-        if not self.HF_TOKEN:
+        if not self.CHAT_API_KEY:
             raise RuntimeError(
-                "HF_TOKEN is missing. Copy .env.example to .env and add your token "
-                "from https://huggingface.co/settings/tokens"
+                "CHAT_API_KEY is missing. Copy .env.example to .env and add your key "
+                "from https://openrouter.ai/keys"
             )
 
 

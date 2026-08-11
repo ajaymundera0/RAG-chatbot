@@ -4,10 +4,6 @@
         "expected_answer": "Arabica and Robusta (Coffea arabica and Coffea canephora)"
     },
     {
-        "question": "What is the capital of France?",
-        "expected_answer": "I don't know based on these documents."
-    },
-    {
         "question": "Who is the goat herder said to have discovered coffee?",
         "expected_answer": "Kaldi"
     },
@@ -18,5 +14,85 @@
     {
         "question": "How long does espresso typically take to brew?",
         "expected_answer": "Roughly twenty-five to thirty seconds"
+    },
+    {
+        "question": "What water temperature range is recommended for brewing coffee?",
+        "expected_answer": "Roughly 195 to 205 degrees Fahrenheit, or about 90 to 96 degrees Celsius"
+    },
+    {
+        "question": "What is the audible popping sound that roughly marks the beginning of drinkable coffee called?",
+        "expected_answer": "First crack"
+    },
+    {
+        "question": "Which insurance market traces its origins to a coffee house?",
+        "expected_answer": "Lloyd's of London"
+    },
+    {
+        "question": "Roughly what percentage of caffeine does decaffeination typically remove?",
+        "expected_answer": "Around 97 percent"
+    },
+    {
+        "question": "How long is cold brew typically steeped for?",
+        "expected_answer": "Typically twelve to twenty-four hours"
+    },
+    {
+        "question": "What is a commonly cited starting brew ratio for filter coffee?",
+        "expected_answer": "Roughly one part coffee to sixteen parts water by weight (ratios commonly range from about 1:15 to 1:18)"
+    },
+    {
+        "question": "Do darker roasts contain more caffeine than lighter roasts of the same bean?",
+        "expected_answer": "No. Contrary to popular belief, darker roasts generally contain slightly less caffeine by volume than lighter roasts, because roasting breaks down some caffeine and dark-roasted beans are less dense."
+    },
+    {
+        "question": "Is storing coffee in the refrigerator recommended?",
+        "expected_answer": "No, it is generally discouraged, because temperature fluctuations can cause condensation inside the packaging and coffee can absorb odors from other food."
+    },
+    {
+        "question": "Which of the two commercially grown coffee species contains more caffeine, and why is that species commonly used in espresso blends?",
+        "expected_answer": "Robusta, which has roughly double the caffeine of arabica. It is widely used in espresso blends for the crema it produces, which means such blends tend to be higher in caffeine."
+    },
+    {
+        "question": "Why does cold brew require a much coarser grind than espresso?",
+        "expected_answer": "Because of the contact time between water and coffee. Espresso extracts in roughly twenty-five to thirty seconds so it needs a very fine grind, while cold brew steeps for twelve to twenty-four hours, and a fine grind over that long would over-extract and taste unpleasantly bitter."
+    },
+    {
+        "question": "My espresso shot finished in about 18 seconds. What does that usually indicate?",
+        "expected_answer": "A shot running well under twenty-five seconds usually indicates a grind that is too coarse, or too little coffee dosed into the portafilter."
+    },
+    {
+        "question": "My pour over tastes sour and sharp. What is likely wrong and what are the possible causes?",
+        "expected_answer": "It is likely under-extraction, which can result from a grind that is too coarse, water that is not hot enough, or a brew time that is too short."
+    },
+    {
+        "question": "Which processing method produces the cleanest and brightest flavor profile, and why?",
+        "expected_answer": "The washed (wet) process, because fermentation and washing remove most of the fruit's influence, letting the underlying characteristics of the bean and growing region come through clearly."
+    },
+    {
+        "question": "How does growing altitude affect coffee quality?",
+        "expected_answer": "Coffee grown at higher altitudes matures more slowly due to cooler temperatures, allowing more time for sugars and complex flavor compounds to develop, which is part of why high-altitude arabica is often considered more complex."
+    },
+    {
+        "question": "Why do most coffee professionals recommend burr grinders over blade grinders?",
+        "expected_answer": "Blade grinders produce inconsistent particle sizes, causing uneven extraction where fine particles over-extract while coarse ones under-extract. Burr grinders crush beans between two abrasive surfaces at a fixed distance, producing more consistent particle size and more even extraction."
+    },
+    {
+        "question": "What is the capital of France?",
+        "expected_answer": "I don't know based on these documents."
+    },
+    {
+        "question": "How many milligrams of caffeine are in a single shot of espresso?",
+        "expected_answer": "I don't know based on these documents."
+    },
+    {
+        "question": "Which country consumes the most coffee per capita?",
+        "expected_answer": "I don't know based on these documents."
+    },
+    {
+        "question": "What price did the most expensive Geisha lot fetch at auction?",
+        "expected_answer": "I don't know based on these documents."
+    },
+    {
+        "question": "What grind setting should I use on a Baratza Encore for French press?",
+        "expected_answer": "I don't know based on these documents."
     }
 ]
