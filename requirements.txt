@@ -5,4 +5,4 @@ uvicorn[standard]
 python-multipart
 pypdf
 pinecone-plugin-interface
-pinecone-client
+pinecone
