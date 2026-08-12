@@ -1,14 +1,12 @@
 import os
 from pinecone import Pinecone, ServerlessSpec
-from openai import OpenAI
 from backend.app.config import settings
 import uuid
 
 class PineconeVectorStore:
     def __init__(self, collection_name: str = "rag-chatbot"):
-        # Initialize Pinecone and OpenAI clients
+        # Initialize Pinecone client
         self.pc = Pinecone(api_key=settings.PINECONE_API_KEY)
-        self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
         self.embedding_model = settings.EMBEDDING_MODEL
         
         # We use the config name or fallback to the provided name
@@ -16,10 +14,10 @@ class PineconeVectorStore:
 
         # Ensure index exists
         if self.index_name not in [index.name for index in self.pc.list_indexes()]:
-            # text-embedding-3-small outputs 1536 dimensions
+            # multilingual-e5-large outputs 1024 dimensions
             self.pc.create_index(
                 name=self.index_name,
-                dimension=1536,
+                dimension=1024,
                 metric="cosine",
                 spec=ServerlessSpec(
                     cloud="aws",
@@ -28,15 +26,20 @@ class PineconeVectorStore:
             )
         self.index = self.pc.Index(self.index_name)
 
-    def _get_embeddings(self, texts: list[str]) -> list[list[float]]:
-        """Fetch embeddings from OpenAI"""
+    def _get_embeddings(self, texts: list[str], input_type: str = "passage") -> list[list[float]]:
+        """Fetch embeddings from Pinecone Inference"""
         if not texts:
             return []
-        response = self.openai_client.embeddings.create(
-            input=texts,
-            model=self.embedding_model
+        
+        response = self.pc.inference.embed(
+            model=self.embedding_model,
+            inputs=texts,
+            parameters={
+                "input_type": input_type,
+                "truncate": "END"
+            }
         )
-        return [data.embedding for data in response.data]
+        return [data.values for data in response.data]
 
     def add_chunks(self, chunks: list[dict], source: str):
         """Adds structured chunks to the vector store, preserving metadata."""
@@ -72,7 +75,7 @@ class PineconeVectorStore:
 
     def search(self, query: str, top_k: int = 4) -> list[dict]:
         """Searches for the most similar chunks to the query."""
-        query_embedding = self._get_embeddings([query])[0]
+        query_embedding = self._get_embeddings([query], input_type="query")[0]
         
         results = self.index.query(
             vector=query_embedding,

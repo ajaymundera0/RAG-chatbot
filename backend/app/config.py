@@ -24,9 +24,8 @@ class Settings:
     # stronger model of the pair; same family, so watch for generous grading.
     JUDGE_MODEL: str = "deepseek-v4-pro"
 
-    # Cloud embedding model (OpenAI)
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    # Cloud embedding model (Pinecone Inference API)
+    EMBEDDING_MODEL: str = "multilingual-e5-large"
 
     # Pinecone
     PINECONE_API_KEY: str = os.getenv("PINECONE_API_KEY", "")
@@ -37,10 +36,6 @@ class Settings:
             raise RuntimeError(
                 "CHAT_API_KEY is missing. Copy .env.example to .env and add a key "
                 "matching your CHAT_BASE_URL provider."
-            )
-        if not self.OPENAI_API_KEY:
-            raise RuntimeError(
-                "OPENAI_API_KEY is missing. You need it for embeddings."
             )
         if not self.PINECONE_API_KEY:
             raise RuntimeError(
