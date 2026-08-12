@@ -16,11 +16,11 @@ In progress: growing the eval set and running Phase 5 (data-driven tuning of chu
 
 | Piece | Choice | Why |
 |---|---|---|
-| Backend | Python + FastAPI | Richest AI ecosystem; native async streaming |
+| Backend | Python + FastAPI | Richest AI ecosystem; native async streaming. *Now Serverless (Vercel) compatible!* |
 | LLM | DeepSeek `v4-flash` (answers) + `v4-pro` (eval judge) | Any OpenAI-compatible provider works — swapping is a `.env` change, not a code change. Free options exist via OpenRouter, but their shared free pool returns intermittent 502s under eval load |
-| Embeddings | `all-MiniLM-L6-v2` via `sentence-transformers` | Runs locally on CPU, no API key, no per-query cost |
-| Vector store | Chroma (`PersistentClient`) | Local, zero infra, survives restarts |
-| PDF parsing | `pypdf` | Page-level extraction, which is what makes citations possible |
+| Embeddings | `multilingual-e5-large` via Pinecone Inference API | Cloud-hosted, fast, requires no local ML dependencies. Zero local per-query overhead. |
+| Vector store | Pinecone Serverless | Industry-standard cloud vector database, replaces local ChromaDB for serverless environments. |
+| PDF parsing | `pypdf` | Page-level extraction, which is what makes citations possible (Processed entirely in-memory!) |
 | Frontend | Plain HTML/CSS/JS | No build step; the interesting problems here aren't frontend ones |
 
 ## Setup
@@ -29,7 +29,7 @@ In progress: growing the eval set and running Phase 5 (data-driven tuning of chu
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env       # then fill in your API key
+cp .env.example .env       # then fill in your API keys (DeepSeek + Pinecone)
 ```
 
 `.env` takes a `CHAT_BASE_URL` and a matching `CHAT_API_KEY`; model ids go in `backend/app/config.py`. Any OpenAI-compatible provider works, with no code changes:
@@ -39,7 +39,9 @@ cp .env.example .env       # then fill in your API key
 
 Model ids are provider-specific — the same model is `deepseek-v4-flash` on DeepSeek's own API and `deepseek/deepseek-v4-flash` on OpenRouter.
 
-Verify both halves of the pipeline work (first run downloads the ~90MB embedding model):
+You also need a free [Pinecone](https://www.pinecone.io/) account to get a `PINECONE_API_KEY` for vector storage and embeddings.
+
+Verify both halves of the pipeline work:
 
 ```bash
 python scripts/smoke_test.py
@@ -64,7 +66,7 @@ python scripts/phase1_terminal.py
 **Ingestion — runs once per uploaded file (`POST /upload`)**
 
 ```
-PDF/txt → extract per page → chunk (~1000 chars, 100 overlap) → embed → store vector + metadata
+PDF/txt (In-Memory) → extract per page → chunk (~1000 chars, 100 overlap) → embed (Pinecone) → store vector + metadata
 ```
 
 Text is extracted **per page**, and each chunk carries its page number forward. That metadata is the entire basis for citations, so it has to survive chunking.
@@ -144,4 +146,3 @@ By iterating methodically on our RAG configuration guided by a measurable evalua
 - Score citation accuracy, not just answer accuracy.
 - Hybrid search (keyword + vector) and re-ranking of retrieved chunks — semantic search alone misses exact identifiers like part numbers.
 - Conversation memory across turns; follow-up questions currently retrieve without any history.
-- Deploy behind a public link.
