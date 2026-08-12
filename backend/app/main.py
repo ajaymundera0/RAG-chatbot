@@ -7,7 +7,7 @@ import os
 import shutil
 
 from backend.app.config import settings
-from backend.app.vector_store import ChromaVectorStore
+from backend.app.vector_store import PineconeVectorStore
 from backend.app.ingestion import load_document, chunk_text
 from backend.app.chat import stream_answer
 
@@ -22,10 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Ensure data and chroma_db directories exist
-os.makedirs("data", exist_ok=True)
-os.makedirs("chroma_db", exist_ok=True)
-
 # Initialize vector store globally
 vector_store = None
 
@@ -33,7 +29,7 @@ vector_store = None
 def startup_event():
     global vector_store
     settings.validate()
-    vector_store = ChromaVectorStore()
+    vector_store = PineconeVectorStore()
 
 class ChatRequest(BaseModel):
     query: str
@@ -44,17 +40,11 @@ async def upload_document(file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
         
-    # Strip any directory components so an uploaded name can't escape data/
     filename = os.path.basename(file.filename)
-    file_path = os.path.join("data", filename)
-
-    # Save file temporarily
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
 
     try:
-        # Extract pages and chunk them
-        pages = load_document(file_path)
+        # Extract pages directly from the in-memory file object
+        pages = load_document(file.file, filename)
         chunks = chunk_text(pages, chunk_size=1000, overlap=100)
 
         if not chunks:

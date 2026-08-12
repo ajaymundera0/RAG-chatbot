@@ -1,19 +1,17 @@
-import os
+import io
 from pypdf import PdfReader
 
-def load_document(filepath: str) -> list[dict]:
+def load_document(file_obj, filename: str) -> list[dict]:
     """
-    Reads a text or PDF document from the filesystem.
+    Reads a text or PDF document from a file-like object.
     Returns a list of dictionaries, where each dict represents a page (or the whole doc for txt)
     and contains the text and metadata (including page number).
     """
-    if not os.path.exists(filepath):
-        raise FileNotFoundError(f"Document not found: {filepath}")
-    
     pages_data = []
     
-    if filepath.lower().endswith(".pdf"):
-        reader = PdfReader(filepath)
+    if filename.lower().endswith(".pdf"):
+        # pypdf can read directly from a file-like object (BytesIO or SpooledTemporaryFile)
+        reader = PdfReader(file_obj)
         for i, page in enumerate(reader.pages):
             extracted = page.extract_text()
             if extracted and extracted.strip():
@@ -22,13 +20,13 @@ def load_document(filepath: str) -> list[dict]:
                     "metadata": {"page": i + 1}
                 })
     else:
-        with open(filepath, "r", encoding="utf-8") as f:
-            text = f.read()
-            if text and text.strip():
-                pages_data.append({
-                    "text": text,
-                    "metadata": {"page": 1} # Default to page 1 for flat text files
-                })
+        # For text files, read and decode
+        text = file_obj.read().decode("utf-8")
+        if text and text.strip():
+            pages_data.append({
+                "text": text,
+                "metadata": {"page": 1} # Default to page 1 for flat text files
+            })
                 
     return pages_data
 

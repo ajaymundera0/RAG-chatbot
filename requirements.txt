@@ -2,8 +2,7 @@ openai
 python-dotenv
 fastapi
 uvicorn[standard]
-sentence-transformers
-chromadb
 python-multipart
-pypdf  
- 
+pypdf
+pinecone-plugin-interface
+pinecone-client
