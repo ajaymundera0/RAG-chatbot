@@ -94,5 +94,33 @@
     {
         "question": "What grind setting should I use on a Baratza Encore for French press?",
         "expected_answer": "I don't know based on these documents."
+    },
+    {
+        "question": "When did the three ingredients of data, compute, and algorithms converge to trigger the AI explosion?",
+        "expected_answer": "Around 2012."
+    },
+    {
+        "question": "What were the two main bottlenecks that limited early machine learning?",
+        "expected_answer": "Not enough data (the internet was in its infancy) and not enough compute (computers were too slow for deep training)."
+    },
+    {
+        "question": "What is the analogy used to describe how machine learning works, and what are the main steps?",
+        "expected_answer": "It is like a child learning by trial and error. The steps are: show the machine many examples, the machine makes a guess, tell it if it was right or wrong, the machine adjusts itself slightly, and repeat millions of times."
+    },
+    {
+        "question": "Did the dictionary approach successfully solve the NLP problem for understanding context?",
+        "expected_answer": "No, a dictionary definition isn't enough for real-world language because context changes everything (for example, 'Apple' can be a fruit, a trillion-dollar company, or a record label)."
+    },
+    {
+        "question": "Why do sequence models (RNNs) struggle with long sentences?",
+        "expected_answer": "Because they process information linearly and have limited memory capacity, so by the time they reach the end of a long sentence, they have often forgotten the subject at the beginning."
+    },
+    {
+        "question": "What specific GPU model is recommended for training deep learning models?",
+        "expected_answer": "I don't know based on these documents."
+    },
+    {
+        "question": "How does deep learning improve the extraction time of espresso shots?",
+        "expected_answer": "I don't know based on these documents."
     }
 ]

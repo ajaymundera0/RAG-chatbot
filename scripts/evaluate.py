@@ -17,7 +17,10 @@ CHUNK_OVERLAP = 100
 TOP_K = 4
 
 # Fixed corpus the eval questions are written against.
-EVAL_DOCS = ["data/Home_Coffee_Brewing_Guide.pdf"]
+EVAL_DOCS = [
+    "data/Home_Coffee_Brewing_Guide.pdf",
+    "data/Fasttracking the course of AI.pdf"
+]
 
 
 def build_index() -> ChromaVectorStore:
