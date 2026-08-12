@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from openai import OpenAI
 from backend.app.config import settings
-from backend.app.vector_store import ChromaVectorStore
+from backend.app.vector_store import PineconeVectorStore
 from backend.app.ingestion import load_document, chunk_text
 from backend.app.chat import generate_answer
 
@@ -23,17 +23,17 @@ EVAL_DOCS = [
 ]
 
 
-def build_index() -> ChromaVectorStore:
+def build_index() -> PineconeVectorStore:
     """
     Rebuilds a dedicated eval index from a fixed document list.
 
     Uses its own collection so it never clobbers documents uploaded through the app,
-    and re-ingests on every run so a score depends only on the settings above --
-    not on whatever happens to be sitting in chroma_db from earlier sessions.
+    and re-ingests on every run so a score depends only on the settings above.
     """
-    store = ChromaVectorStore(collection_name="eval")
+    store = PineconeVectorStore(collection_name="eval")
     for path in EVAL_DOCS:
-        pages = load_document(path)
+        with open(path, "rb") as f:
+            pages = load_document(f, os.path.basename(path))
         chunks = chunk_text(pages, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP)
         store.add_chunks(chunks, source=os.path.basename(path))
         print(f"  Indexed {os.path.basename(path)}: {len(pages)} pages -> {len(chunks)} chunks")
